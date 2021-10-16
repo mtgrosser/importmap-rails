@@ -24,7 +24,7 @@ class Importmap::Map
 
   def pin(name, to: nil, preload: false)
     clear_cache
-    @packages[name] = MappedFile.new(name: name, path: to || "#{name}.js", preload: preload)
+    @packages[name] = MappedFile.new(name: name, path: to || javascript_filename(name), preload: preload)
   end
 
   def pin_all_from(dir, under: nil, to: nil, preload: false)
@@ -61,10 +61,8 @@ class Importmap::Map
   # and test to ensure the map caches are reset when javascript files are changed.
   def cache_sweeper(watches: nil)
     if watches
-      @cache_sweeper =
-        Rails.application.config.file_watcher.new([], Array(watches).collect { |dir| [ dir.to_s, "js"] }.to_h) do
-          clear_cache
-        end
+      watches = Array(watches).collect { |dir| [ dir.to_s, accepted_extensions] }.to_h
+      @cache_sweeper = Rails.application.config.file_watcher.new([], watches) { clear_cache }
     else
       @cache_sweeper
     end
@@ -109,7 +107,7 @@ class Importmap::Map
     def expand_directories_into(paths)
       @directories.values.each do |mapping|
         if (absolute_path = absolute_root_of(mapping.dir)).exist?
-          find_javascript_files_in_tree(absolute_path).each do |filename|
+          find_accepted_files_in_tree(absolute_path).each do |filename|
             module_filename = filename.relative_path_from(absolute_path)
             module_name     = module_name_from(module_filename, mapping)
             module_path     = module_path_from(module_filename, mapping)
@@ -121,18 +119,38 @@ class Importmap::Map
     end
 
     def module_name_from(filename, mapping)
-      [ mapping.under, filename.to_s.remove(filename.extname).remove(/\/?index$/).presence ].compact.join("/")
+      [ mapping.under, filename.to_s.remove(/\.js\z/).remove(index_shortcut_pattern).presence ].compact.join("/")
     end
 
     def module_path_from(filename, mapping)
-      [ mapping.path || mapping.under, filename.to_s ].compact.join("/")
+      [ mapping.path || mapping.under, javascript_filename(filename.to_s) ].compact.join("/")
     end
 
-    def find_javascript_files_in_tree(path)
-      Dir[path.join("**/*.js{,m}")].collect { |file| Pathname.new(file) }.select(&:file?)
+    def find_accepted_files_in_tree(path)
+      Dir[path.join("**/*.{#{accepted_extensions.join(',')}}")].map(&Pathname.method(:new)).select(&:file?)
     end
 
     def absolute_root_of(path)
       (pathname = Pathname.new(path)).absolute? ? pathname : Rails.root.join(path)
+    end
+
+    def accepted_extensions
+      Rails.application.config.importmap.accept
+    end
+
+    def accepted_extra_extensions
+      accepted_extensions - %w[js]
+    end
+
+    def accepted_extensions_pattern
+      /\.(#{accepted_extensions.map(&Regexp.method(:escape)).join('|')})\z/
+    end
+
+    def index_shortcut_pattern
+      /\/?index(\.(#{accepted_extra_extensions.map(&Regexp.method(:escape)).join('|')}))?\z/
+    end
+
+    def javascript_filename(name)
+      "#{name.remove(accepted_extensions_pattern)}.js"
     end
 end

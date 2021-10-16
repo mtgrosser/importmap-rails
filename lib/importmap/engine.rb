@@ -7,6 +7,7 @@ module Importmap
   class Engine < ::Rails::Engine
     config.importmap = ActiveSupport::OrderedOptions.new
     config.importmap.sweep_cache = Rails.env.development? || Rails.env.test?
+    config.importmap.accept = %w( js )
 
     config.autoload_once_paths = %W( #{root}/app/helpers )
 
