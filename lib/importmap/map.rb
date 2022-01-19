@@ -24,14 +24,14 @@ class Importmap::Map
     self
   end
 
-  def pin(name, to: nil, preload: false)
+  def pin(name, to: nil, preload: false, precompile: nil)
     clear_cache
-    @packages[name] = MappedFile.new(name: name, path: to || javascript_filename(name), preload: preload)
+    @packages[name] = MappedFile.new(name: name, path: to || javascript_filename(name), preload: preload, precompile: precompile)
   end
 
-  def pin_all_from(dir, under: nil, to: nil, preload: false)
+  def pin_all_from(dir, under: nil, to: nil, preload: false, precompile: nil)
     clear_cache
-    @directories[dir] = MappedDir.new(dir: dir, under: under, path: to, preload: preload)
+    @directories[dir] = MappedDir.new(dir: dir, under: under, path: to, preload: preload, precompile: precompile)
   end
 
   # Returns an array of all the resolved module paths of the pinned packages. The `resolver` must respond to
@@ -68,6 +68,11 @@ class Importmap::Map
     Digest::SHA1.hexdigest(to_json(resolver: resolver).to_s)
   end
 
+  # Returns the list of local assets to precompile
+  def precompile
+    expanded_packages_and_directories.values.select(&:precompile?).map(&:path)
+  end
+
   # Returns an instance ActiveSupport::EventedFileUpdateChecker configured to clear the cache of the map
   # when the directories passed on initialization via `watches:` have changes. This is used in development
   # and test to ensure the map caches are reset when javascript files are changed.
@@ -81,8 +86,13 @@ class Importmap::Map
   end
 
   private
-    MappedDir  = Struct.new(:dir, :path, :under, :preload, keyword_init: true)
-    MappedFile = Struct.new(:name, :path, :preload, keyword_init: true)
+    MappedDir  = Struct.new(:dir, :path, :under, :preload, :precompile, keyword_init: true)
+    MappedFile = Struct.new(:name, :path, :preload, :precompile, keyword_init: true) do
+      def precompile?
+        not (path =~ ActionView::Helpers::AssetUrlHelper::URI_REGEXP || false == precompile)
+      end
+    end
+
 
     def cache_as(name)
       if result = instance_variable_get("@cached_#{name}")
