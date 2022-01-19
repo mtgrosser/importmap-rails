@@ -1,7 +1,7 @@
 require "importmap/map"
 
 # Use Rails.application.importmap to access the map
-Rails::Application.send(:attr_accessor, :importmap)
+Rails::Application.class_eval { attr_accessor :importmap }
 
 module Importmap
   class Engine < ::Rails::Engine
