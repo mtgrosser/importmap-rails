@@ -1,8 +1,9 @@
 PATH
   remote: ..
   specs:
-    importmap-rails (0.9.4)
-      rails (>= 6.0.0)
+    importmap-rails (1.0.2)
+      actionpack (>= 6.0.0)
+      railties (>= 6.0.0)
 
 GEM
   remote: https://rubygems.org/
@@ -104,6 +105,8 @@ GEM
     nio4r (2.5.8)
     nokogiri (1.12.5-arm64-darwin)
       racc (~> 1.4)
+    nokogiri (1.12.5-x86_64-darwin)
+      racc (~> 1.4)
     nokogiri (1.12.5-x86_64-linux)
       racc (~> 1.4)
     propshaft (0.3.1)
@@ -168,6 +171,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-21
+  x86_64-darwin-21
   x86_64-linux
 
 DEPENDENCIES
@@ -185,4 +189,4 @@ DEPENDENCIES
   webdrivers
 
 BUNDLED WITH
-   2.2.30
+   2.2.33
