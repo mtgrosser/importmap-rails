@@ -40,11 +40,11 @@ module Importmap
       end
     end
 
-    initializer "importmap.assets" do
-      if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( es-module-shims.js es-module-shims.min.js )
-        Rails.application.config.assets.paths << Rails.root.join("app/javascript")
-        Rails.application.config.assets.paths << Rails.root.join("vendor/javascript")
+    initializer "importmap.assets" do |app|
+      if app.config.respond_to?(:assets)
+        app.config.assets.precompile += %w( es-module-shims.js es-module-shims.min.js es-module-shims.js.map )
+        app.config.assets.paths << Rails.root.join("app/javascript")
+        app.config.assets.paths << Rails.root.join("vendor/javascript")
       end
     end
 
@@ -54,7 +54,11 @@ module Importmap
       end
     end
 
-    initializer 'importmap.rescuable_asset_errors' do |app|
+    initializer "importmap.rescuable_asset_errors" do |app|
+      if defined?(Propshaft)
+        app.config.importmap.rescuable_asset_errors << Propshaft::MissingAssetError
+      end
+
       if defined?(Sprockets::Rails)
         app.config.importmap.rescuable_asset_errors << Sprockets::Rails::Helper::AssetNotFound
       end
