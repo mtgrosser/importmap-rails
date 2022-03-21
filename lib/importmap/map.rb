@@ -161,7 +161,7 @@ class Importmap::Map
     end
 
     def module_path_from(filename, mapping)
-      [ mapping.path || mapping.under, javascript_filename(filename.to_s) ].compact.join("/")
+      [ mapping.path || mapping.under, "#{remove_accepted_extensions(filename)}.js" ].compact.join("/")
     end
 
     def find_accepted_files_in_tree(path)
@@ -176,11 +176,7 @@ class Importmap::Map
       Rails.application.config.importmap.accept
     end
 
-    def accepted_extensions_pattern
-      /\.(#{accepted_extensions.map(&Regexp.method(:escape)).join('|')})\z/
-    end
-
-    def javascript_filename(name)
-      "#{name.remove(accepted_extensions_pattern)}.js"
+    def remove_accepted_extensions(filename)
+      filename.to_s.remove(/\.(#{accepted_extensions.map(&Regexp.method(:escape)).join('|')})\z/)
     end
 end

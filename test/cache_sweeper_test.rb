@@ -9,22 +9,22 @@ class CacheSweeperTest < ActiveSupport::TestCase
     @importmap = Importmap::Map.new.tap do |map|
       map.draw do
         pin "application"
-        pin "components/Clock.jsx"
+        pin "components/Clock"
       end
     end
 
     @importmap.cache_sweeper watches: %w[app/javascript vendor/javascript].map(&Rails.root.method(:join))
 
-    resolver = MockResolver.new(%r{components/Clock\.js\z})
+    resolver = MockResolver.new(%w[jsx])
     imports = generate_imports(resolver: resolver)
     touch_asset 'components/Clock.jsx'
     new_imports = generate_imports(resolver: resolver)
 
-    assert_not_nil imports["components/Clock.jsx"]
-    assert_not_nil new_imports["components/Clock.jsx"]
+    assert_not_nil imports["components/Clock"]
+    assert_not_nil new_imports["components/Clock"]
     assert_not_nil imports["application"]
     assert_not_nil new_imports["application"]
-    assert_not_equal imports["components/Clock.jsx"], new_imports["components/Clock.jsx"]
+    assert_not_equal imports["components/Clock"], new_imports["components/Clock"]
     assert_equal imports["application"], new_imports["application"]
   ensure
     Rails.application.config.importmap.accept = previous_accept

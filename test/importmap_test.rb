@@ -82,7 +82,7 @@ class ImportmapTest < ActiveSupport::TestCase
         pin_all_from "app/javascript/components", under: "components"
       end
     end
-    importmap_json = generate_importmap_json(resolver: MockResolver.new(%r{components/(Clock|index)\.js\z}))
+    importmap_json = generate_importmap_json(resolver: MockResolver.new(%w[jsx]))
     assert_match %r|assets/components/index-.*\.js|, importmap_json["imports"]["components"]
     assert_match %r|assets/components/Clock-.*\.js|, importmap_json["imports"]["components/Clock"]
   ensure

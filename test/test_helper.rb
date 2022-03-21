@@ -15,10 +15,10 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixtures :all
 end
 
-MockResolver = Struct.new(:pattern) do
+MockResolver = Struct.new(:accept) do
   def path_to_asset(path)
-    if path =~ pattern
-      digest = Digest::SHA256.hexdigest(source_file(path).mtime.to_s)
+    if source = source_file(path)
+      digest = Digest::SHA256.hexdigest(source.mtime.to_s)
       "/assets/" + path.sub(/\.js\z/, "-#{digest}.js")
     else
       ApplicationController.helpers.asset_path(path)
@@ -30,6 +30,6 @@ MockResolver = Struct.new(:pattern) do
   end
 
   def source_file(path)
-    root.join("#{path}x")
+    accept.map { |ext| root.join("#{path.remove(/\.js\z/)}.#{ext}") }.detect(&:file?)
   end
 end
