@@ -157,7 +157,7 @@ class Importmap::Map
     end
 
     def module_name_from(filename, mapping)
-      [ mapping.under, filename.to_s.remove(/\.js\z/).remove(index_shortcut_pattern).presence ].compact.join("/")
+      [ mapping.under, filename.to_s.remove(accepted_extensions_pattern).remove(/\/?index$/).presence ].compact.join("/")
     end
 
     def module_path_from(filename, mapping)
@@ -176,16 +176,8 @@ class Importmap::Map
       Rails.application.config.importmap.accept
     end
 
-    def accepted_extra_extensions
-      accepted_extensions - %w[js]
-    end
-
     def accepted_extensions_pattern
       /\.(#{accepted_extensions.map(&Regexp.method(:escape)).join('|')})\z/
-    end
-
-    def index_shortcut_pattern
-      /\/?index(\.(#{accepted_extra_extensions.map(&Regexp.method(:escape)).join('|')}))?\z/
     end
 
     def javascript_filename(name)

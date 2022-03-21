@@ -16,7 +16,7 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
 end
 
 MockResolver = Struct.new(:pattern) do
-  def asset_path(path)
+  def path_to_asset(path)
     if path =~ pattern
       digest = Digest::SHA256.hexdigest(source_file(path).mtime.to_s)
       "/assets/" + path.sub(/\.js\z/, "-#{digest}.js")

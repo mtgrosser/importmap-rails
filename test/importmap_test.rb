@@ -84,13 +84,13 @@ class ImportmapTest < ActiveSupport::TestCase
     end
     importmap_json = generate_importmap_json(resolver: MockResolver.new(%r{components/(Clock|index)\.js\z}))
     assert_match %r|assets/components/index-.*\.js|, importmap_json["imports"]["components"]
-    assert_match %r|assets/components/Clock-.*\.js|, importmap_json["imports"]["components/Clock.jsx"]
+    assert_match %r|assets/components/Clock-.*\.js|, importmap_json["imports"]["components/Clock"]
   ensure
     Rails.application.config.importmap.accept = previous_accept
   end
 
   test "jsx files are not mapped when importmap doesn't accept jsx" do
-    assert_nil generate_importmap_json["imports"]["components/Clock.jsx"]
+    assert_nil generate_importmap_json["imports"]["components/Clock"]
   end
 
   test "digest" do
