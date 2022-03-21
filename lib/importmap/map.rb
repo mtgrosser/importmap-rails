@@ -26,7 +26,7 @@ class Importmap::Map
 
   def pin(name, to: nil, preload: false, precompile: nil)
     clear_cache
-    @packages[name] = MappedFile.new(name: name, path: to || javascript_filename(name), preload: preload, precompile: precompile)
+    @packages[name] = MappedFile.new(name: name, path: to || "#{name}.js", preload: preload, precompile: precompile)
   end
 
   def pin_all_from(dir, under: nil, to: nil, preload: false, precompile: nil)
@@ -157,7 +157,7 @@ class Importmap::Map
     end
 
     def module_name_from(filename, mapping)
-      [ mapping.under, filename.to_s.remove(accepted_extensions_pattern).remove(/\/?index$/).presence ].compact.join("/")
+      [ mapping.under, remove_accepted_extensions(filename).remove(/\/?index$/).presence ].compact.join("/")
     end
 
     def module_path_from(filename, mapping)
