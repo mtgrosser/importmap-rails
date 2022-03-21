@@ -2,7 +2,7 @@
 
 [Import maps](https://github.com/WICG/import-maps) let you import JavaScript modules using logical names that map to versioned/digested files – directly from the browser. So you can [build modern JavaScript applications using JavaScript libraries made for ES modules (ESM) without the need for transpiling or bundling](https://world.hey.com/dhh/modern-web-apps-without-javascript-bundling-or-transpiling-a20f2755). This frees you from needing Webpack, Yarn, npm, or any other part of the JavaScript toolchain. All you need is the asset pipeline that's already included in Rails.
 
-With this approach you'll ship many small JavaScript files instead of one big JavaScript file. Thanks to HTTP/2 that no longer carries a material performance penalty during the initial transport, and in fact offers substantial benefits over the long run due to better caching dynamics. Whereas before any change to any JavaScript file included in your big bundle would invalidate the cache for the the whole bundle, now only the cache for that single file is invalidated.
+With this approach you'll ship many small JavaScript files instead of one big JavaScript file. Thanks to HTTP/2 that no longer carries a material performance penalty during the initial transport, and in fact offers substantial benefits over the long run due to better caching dynamics. Whereas before any change to any JavaScript file included in your big bundle would invalidate the cache for the whole bundle, now only the cache for that single file is invalidated.
 
 There's [native support for import maps in Chrome/Edge 89+](https://caniuse.com/?search=importmap), and [a shim available](https://github.com/guybedford/es-module-shims) for any browser with basic ESM support. So your app will be able to work with all the evergreen browsers.
 
@@ -221,6 +221,41 @@ And pinning JavaScript modules from the engine:
 # my_engine/config/importmap.rb
 
 pin_all_from File.expand_path("../app/assets/javascripts", __dir__)
+```
+
+
+## Selectively importing modules
+
+You can selectively import your javascript modules on specific pages.
+
+Create your javascript in `app/javascript`:
+
+```js
+// /app/javascript/checkout.js
+// some checkout specific js
+```
+
+Pin your js file:
+
+```rb
+# config/importmap.rb
+# ... other pins...
+pin "checkout"
+```
+
+Import your module on the specific page. Note: you'll likely want to use a `content_for` block on the specifc page/partial, then yield it in your layout.
+
+```erb
+<% content_for :head do %>
+  <%= javascript_import_module_tag "checkout" %>
+<% end %>
+```
+
+**Important**: The `javacript_import_module_tag` should come after your `javascript_importmap_tags`
+
+```erb
+<%= javascript_importmap_tags %>
+<%= yield(:head) %>
 ```
 
 
